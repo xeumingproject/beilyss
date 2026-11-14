@@ -1,341 +1,378 @@
-<div align="center">
+Beilyss
 
-<img src="https://files.catbox.moe/ckkxcq.jpg" alt="beilyss Banner" width="100%"/>
+<p align="center">
+  <img src="https://d.uguu.se/NRukpeXcrzEZ.jpg" width="100%" alt="Beilyss Banner">
+</p><p align="center">
+  <b>A Powerful WhatsApp Web API for Node.js</b><br>
+  Flexible • Extended • Developer Friendly
+</p><p align="center">
+  <a href="https://github.com/xeumingproject/beilyss">
+    <img src="https://img.shields.io/badge/GitHub-xeumingproject-black?style=flat-square&logo=github">
+  </a>
+  <img src="https://img.shields.io/badge/Node.js-Required-green?style=flat-square&logo=node.js">
+  <img src="https://img.shields.io/badge/Module-CommonJS%20%7C%20ESM-blue?style=flat-square">
+</p>---
 
-# @xeumingproject/beilyss
+About
 
-A WebSocket-based library for interacting with WhatsApp Web — a fork of
-[Baileys](https://github.com/WhiskeySockets/Baileys) with additional socket layers
-(Communities, Interop, Privacy, GraphQL) and helpers for special message types
-such as payments, products, albums, events, poll results, and order messages.
+Beilyss is an independent Baileys fork designed for developers who want to build WhatsApp bots, automation systems, and custom messaging applications.
 
-**Converted to CommonJS — fully compatible with `require()` — XEU MING edition.**
+It extends the WhatsApp Web API with additional socket functionality, messaging capabilities, and an integrated Message Builder module.
 
-[![npm](https://img.shields.io/badge/npm-%40xeumingproject%2Fbeilyss-blue)](https://github.com/xeumingproject/beilyss)
-[![Node](https://img.shields.io/badge/node-%3E%3D20-green)](https://nodejs.org)
-[![License](https://img.shields.io/badge/license-MIT-yellow)](./LICENSE)
+Features
 
-</div>
+- WhatsApp Web connection
+- QR Code and Pairing Code authentication
+- Multi-device support
+- Send and receive messages
+- Text, image, video, audio, and document messaging
+- Poll messages
+- Relay messages
+- Group and community management
+- Newsletter support
+- Message Builder ("MB")
+- CommonJS and ES Modules
+- Block and Unblock API
+- Spam Reporting API
+- Account Information Report Flow
 
 ---
 
-> **Not affiliated with WhatsApp or Meta.** Using this library may violate
-> WhatsApp's Terms of Service. Use it at your own risk, and do not use it for spam.
+Installation
 
-## Table of Contents
+Install directly from GitHub:
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-  - [Login with QR Code](#login-with-qr-code)
-  - [Login with Pairing Code](#login-with-pairing-code)
-- [Store](#store)
-- [Sending Messages](#sending-messages)
-  - [Generic Send / Relay](#generic-send--relay)
-  - [Simple Senders](#simple-senders)
-  - [Special Message Types](#special-message-types)
-- [Events](#events)
-- [Examples](#examples)
-- [Known Limitations](#known-limitations)
-- [Contributing](#contributing)
-- [License](#license)
+npm install github:xeumingproject/beilyss
 
-## Requirements
+package.json
 
-- Node.js **>= 20**
-- Optional peer dependencies depending on the features you use:
-  - `sharp` or `jimp` for image processing
-  - `link-preview-js` for link previews
-  - `audio-decode` for audio waveform handling
-
-## Installation
-
-```bash
-npm install @xeumingproject/beilyss
-```
-
-Or add directly from GitHub:
-
-```json
 {
   "dependencies": {
     "@xeumingproject/beilyss": "github:xeumingproject/beilyss"
   }
 }
-```
 
-```js
-// CommonJS (require) — fully supported
-const { default: makeWASocket } = require('@xeumingproject/beilyss')
+---
 
-// ESM (import) — also works
-import makeWASocket from '@xeumingproject/beilyss'
-```
+Import
 
-## Quick Start
+CommonJS
 
-### Login with QR Code
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  Browsers,
+  SPAM_FLOWS,
+  MB
+} = require('@xeumingproject/beilyss');
 
-```js
-const { default: makeWASocket, Browsers, useMultiFileAuthState } = require('@xeumingproject/beilyss')
+ES Modules
 
-const { state, saveCreds } = await useMultiFileAuthState('auth_info')
+import makeWASocket, {
+  useMultiFileAuthState,
+  DisconnectReason,
+  Browsers,
+  SPAM_FLOWS,
+  MB
+} from '@xeumingproject/beilyss';
 
-const client = makeWASocket({
-  browser: Browsers.ubuntu('Chrome'),
-  printQRInTerminal: true,
-  auth: state
-})
+---
 
-client.ev.on('creds.update', saveCreds)
-```
+Connection
 
-### Login with Pairing Code
+Basic WhatsApp connection example:
 
-```js
-const { default: makeWASocket, Browsers, fetchLatestBaileysVersion, useMultiFileAuthState } = require('@xeumingproject/beilyss')
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  Browsers
+} = require('@xeumingproject/beilyss');
 
-const { state, saveCreds } = await useMultiFileAuthState('auth_info')
-const { version } = await fetchLatestBaileysVersion()
+async function connectToWhatsApp() {
+  const { state, saveCreds } =
+    await useMultiFileAuthState('./auth');
 
-const client = makeWASocket({
-  browser: Browsers.ubuntu('Chrome'),
-  printQRInTerminal: false,
-  version,
-  auth: state
-})
+  const conn = makeWASocket({
+    auth: state,
+    browser: Browsers.ubuntu('Safari'),
+    printQRInTerminal: false
+  });
 
-client.ev.on('creds.update', saveCreds)
+  conn.ev.on('creds.update', saveCreds);
 
-if (!client.authState?.creds?.registered) {
-  const phoneNumber = '628XXXXXXXXXX' // international format, without '+'
-  const code = await client.requestPairingCode(phoneNumber)
-  // custom pairing code (8 characters):
-  // const code = await client.requestPairingCode(phoneNumber, 'ALEXPEPK')
-  console.log('Pairing code:', code)
+  conn.ev.on('connection.update', ({ connection }) => {
+    if (connection === 'open') {
+      console.log('WhatsApp Connected!');
+    }
+
+    if (connection === 'close') {
+      console.log('WhatsApp Connection Closed!');
+    }
+  });
+
+  return conn;
 }
-```
 
-## Store
+connectToWhatsApp();
 
-`makeInMemoryStore` creates a local cache for chats, contacts, and messages,
-which Baileys does not persist automatically by default.
+---
 
-```js
-const { default: makeWASocket, makeInMemoryStore } = require('@xeumingproject/beilyss')
-const pino = require('pino')
+Messaging Documentation
 
-const store = makeInMemoryStore({
-  logger: pino().child({ level: 'silent', stream: 'store' })
-})
+1. Send Text
 
-const client = makeWASocket({ /* ...other options */ })
-store.bind(client.ev)
+Send a regular text message using "sendMessage()".
 
-client.ev.on('contacts.upsert', () => {
-  console.log('New contact:', Object.values(store.contacts))
-})
-```
+async function sendText(conn, target) {
+  await conn.sendMessage(target, {
+    text: 'Hello from Beilyss!'
+  });
+}
 
-Need a persistent store such as Redis? Use `makeCacheManagerStore` — see the [API Reference](docs/API.md#store-libstore).
+2. Send Image
 
-### Saving the Store to a File
+Send an image with a caption.
 
-`makeInMemoryStore` can read from and write to a local JSON file, so it can
-survive restarts without requiring an external database.
+async function sendImage(conn, target) {
+  await conn.sendMessage(target, {
+    image: {
+      url: 'https://files.catbox.moe/h87kyf.png'
+    },
+    caption: 'Image sent using Beilyss'
+  });
+}
 
-```js
-const store = makeInMemoryStore({ /* ... */ })
+You can also send an image from a local file:
 
-// load once on startup, then auto-save every 10 seconds
-const stopAutoSave = store.writeToFileInterval('./store.json')
+async function sendLocalImage(conn, target) {
+  await conn.sendMessage(target, {
+    image: {
+      url: './image.jpg'
+    },
+    caption: 'Local image'
+  });
+}
 
-process.on('SIGINT', () => {
-  stopAutoSave()
-  process.exit(0)
-})
-```
+3. Send Poll
 
-You can also manage it manually with `store.readFromFile(path)` and `store.writeToFile(path)`.
+Create a WhatsApp poll.
 
-## Sending Messages
+async function sendPoll(conn, target) {
+  await conn.sendMessage(target, {
+    poll: {
+      name: 'Which feature do you prefer?',
+      values: [
+        'Send Message',
+        'Relay Message',
+        'Message Builder'
+      ],
+      selectableCount: 1
+    }
+  });
+}
 
-### Generic Send / Relay
+"selectableCount" determines how many options participants can select.
 
-```js
-// relayMessage — sends a raw message object, bypassing the sendMessage pipeline
-await client.relayMessage(jid, { conversation: 'Hello from beilyss' }, {})
+4. Send Video
 
-// sendMessage — the standard way to send a message
-await client.sendMessage(jid, { text: 'Hello from beilyss' })
-```
+async function sendVideo(conn, target) {
+  await conn.sendMessage(target, {
+    video: {
+      url: 'https://example.com/video.mp4'
+    },
+    caption: 'Video sent using Beilyss'
+  });
+}
 
-### Simple Senders
+5. Send Audio
 
-All `sendX` helpers below are shortcuts built on top of `sendMessage`.
+async function sendAudio(conn, target) {
+  await conn.sendMessage(target, {
+    audio: {
+      url: './audio.mp3'
+    },
+    mimetype: 'audio/mpeg'
+  });
+}
 
-```js
-await client.sendText(jid, 'Hi!', { contextInfo: { mentionedJid: [jid] } })
-await client.sendImage(jid, { url: './photo.jpg' }, 'image caption')
-await client.sendVideo(jid, { url: './clip.mp4' }, 'video caption')
-await client.sendAudio(jid, { url: './clip.mp3' })
-await client.sendLocation(jid, 'Location name', -6.2, 106.8, 'https://maps.example', '1234567890')
-await client.sendPoll(jid, 'Pick one', ['Option 1', 'Option 2', 'Option 3'], /* multiSelect */ true)
-await client.sendQuiz(jid, 'Correct answer?', ['1', '2', '3'], /* correctIndex */ '2')
-```
+6. Send Document
 
-### Special Message Types
+async function sendDocument(conn, target) {
+  await conn.sendMessage(target, {
+    document: {
+      url: './document.pdf'
+    },
+    mimetype: 'application/pdf',
+    fileName: 'Beilyss.pdf',
+    caption: 'Document example'
+  });
+}
 
-These are handled internally by the `Socket/luxu.js` helper and are invoked automatically
-by `sendMessage` or `relayMessage` whenever the payload contains one of the fields below.
+---
 
-### Rich Menu
+Relay Message
 
-`richMenu` sends a rich response with an optional header image, action buttons, carousel cards, and an open-URL footer:
+"relayMessage()" provides a lower-level way to relay a prepared WhatsApp message payload.
 
-```js
-await client.richMenu(jid, {
-  header: {
-    title: 'XEU MING Menu',
-    image: { url: 'https://files.catbox.moe/ckkxcq.jpg' }
-  },
-  body: {
-    title: 'Pilih menu:',
-    buttons: ['Profile', 'Help', 'Store']
-  },
-  footer: {
-    text: 'Open website',
-    url: 'https://github.com/xeumingproject/beilyss'
-  }
-})
-```
+Unlike "sendMessage()", it does not automatically prepare every high-level message type. The payload must use the appropriate WhatsApp message structure.
 
-### Split Payment
+1. Relay Text
 
-`splitPayment` is a convenience wrapper that is converted to the native
-`splitPaymentMessage` protobuf shape. Amounts use human units and default to
-an offset of `1000`.
+const { randomBytes } = require('crypto');
 
-```js
-await client.sendMessage(jid, {
-  splitPayment: {
-    splitId: 'makan-01',
-    total: 150000,
-    currency: 'IDR',
-    description: 'Makan bareng',
-    requesterJid: '628000000000@s.whatsapp.net',
-    participants: [
-      { jid: '628111111111@s.whatsapp.net', amount: 50000 },
-      { jid: '628222222222@s.whatsapp.net', amount: 100000, status: 'PAID' }
-    ]
-  }
-})
-```
+async function relayText(conn, target) {
+  const messageId = randomBytes(11)
+    .toString('hex')
+    .toUpperCase();
 
-For direct protobuf use, `splitPaymentMessage` remains supported as well.
+  await conn.relayMessage(
+    target,
+    {
+      extendedTextMessage: {
+        text: 'Hello from relayMessage!'
+      }
+    },
+    {
+      messageId
+    }
+  );
+}
 
-```js
-// Product message (catalog)
-await client.relayMessage(jid, {
-  productMessage: {
-    title: 'Product Name',
-    description: 'Product description',
-    thumbnail: { url: './product.jpg' },
-    productId: 'PRODUCT_ID',
-    retailerId: 'RETAILER_ID',
-    url: 'https://store.example/product',
-    body: 'Body text',
-    footer: 'Footer text',
-    priceAmount1000: 72502, // price x 1000
-    currencyCode: 'IDR'
-  }
-}, {})
+2. Relay Prepared Message
 
-// Order message
-await client.sendMessage(jid, {
-  thumbnail: fs.readFileSync('./thumb.jpg'),
-  message: 'Order details',
-  orderTitle: 'XEU MING Store',
-  totalAmount1000: 72502,
-  totalCurrencyCode: 'IDR'
-}, { quoted: m })
+You can also prepare a message first and relay its message content:
 
-// Poll result snapshot (usually from a newsletter)
-await client.sendMessage(jid, {
-  pollResultMessage: {
-    name: 'Poll Title',
-    options: [{ optionName: 'Option 1' }, { optionName: 'Option 2' }],
-    newsletter: { newsletterName: 'XEU MING', newsletterJid: '120363428996629698@newsletter' }
-  }
-})
+async function relayPreparedMessage(conn, target) {
+  const message = {
+    extendedTextMessage: {
+      text: 'Beilyss Relay Example'
+    }
+  };
 
-// Interactive message (button)
-await client.sendMessage(jid, {
-  image: { url: 'https://files.catbox.moe/ckkxcq.jpg' },
-  text: 'Message body',
-  title: 'XEU MING',
-  footer: '© alexpepek',
-  interactiveButtons: [{
-    name: 'cta_url',
-    buttonParamsJson: JSON.stringify({ display_text: 'Visit', url: 'https://github.com/xeumingproject/beilyss' })
-  }]
-})
+  await conn.relayMessage(target, message, {
+    messageId: randomBytes(11).toString('hex').toUpperCase()
+  });
+}
 
-// Group member label
-await client.sendMessage(jid, {
-  groupLabel: { labelText: 'Admin' }
-})
+Import "randomBytes" from Node.js crypto when using this example:
 
-// Broadcast to specific group members
-await client.sendMessageMembers(jid, { extendedTextMessage: { text: 'Announcement' } }, {})
-```
+const { randomBytes } = require('crypto');
 
-> Fields such as `sender` and `participant: true` in the second argument of
-> `sendMessage` or `relayMessage` are used to provide group-participant context.
+Important: "relayMessage()" is a lower-level API. For ordinary text, image, poll, and document messages, use "sendMessage()" unless you specifically need to construct and relay a raw WhatsApp message payload.
 
-## Events
+---
 
-All interactions are exposed through events on `client.ev`:
+Extended Socket Features
 
-```js
-client.ev.on('connection.update', ({ connection, lastDisconnect }) => {
-  console.log('Connection status:', connection)
-})
+1. Block Contact
 
-client.ev.on('messages.upsert', ({ messages, type }) => {
-  for (const m of messages) {
-    console.log('Incoming message:', m.message)
-  }
-})
+await conn.updateBlockStatus(target, 'block');
 
-client.ev.on('creds.update', saveCreds)
-```
+2. Unblock Contact
 
-See the full list of available events in `lib/Types/Events.js`.
+await conn.updateBlockStatus(target, 'unblock');
 
-## Examples
+3. Spam Reporting
 
-Ready-to-run examples are available in [examples/](examples):
+Submit an individual report using a supported reporting flow:
 
-- [examples/qr-login.js](examples/qr-login.js) — QR login with automatic reconnection
-- [examples/pairing-code.js](examples/pairing-code.js) — pairing code login
-- [examples/store-usage.js](examples/store-usage.js) — using the in-memory store
+const { SPAM_FLOWS } = require('@xeumingproject/beilyss');
 
-## Known Limitations
+await conn.reportSpam(target, {
+  flow: SPAM_FLOWS.OverflowMenuReport
+});
 
-- **No `.d.ts` files for `lib/`** — only `WAProto` ships TypeScript definitions. Full autocomplete requires the TypeScript source, which is not included in this build.
-- **Console banner on import** — every time the package is imported, an ASCII art banner and promotional link are printed to stdout. In production or multi-instance setups, this can become noisy.
-- **`optionHash` for per-option image polls** is not implemented — it appears to require further reverse-engineering at the WhatsApp APK level.
+Use reporting functionality responsibly and only for legitimate reports.
 
-## Contributing
+4. SPAM_FLOWS
 
-Issues and pull requests are welcome. Contact: **@alexpepek**
+Available flow identifiers:
 
-```bash
-npm run lint
-npm test
-```
+Name| Value
+Block| "block_dialog"
+OverflowMenuBlock| "overflow_menu_block"
+OverflowMenuReport| "overflow_menu_report"
+MediaViewer| "media_viewer"
+MessageMenu| "message_menu"
+CommunityHome| "community_home"
+AccountInfoReport| "account_info_report"
+GroupInfoReport| "group_info_report"
+GroupSpamBannerReport| "group_spam_banner_report"
+OneToOneChatSpamBannerReport| "1_1_spam_banner_report"
+BizSpamBannerBlock| "biz_spam_banner_block"
+ChatListBlock| "chat_list_block"
+NotificationBlock| "notification_block"
+StatusPostReport| "status_post_report"
+NewsletterInfoReport| "newsletter_info_report"
 
-## License
+AccountInfoReport
 
-MIT — © @xeumingproject / alexpepek
+console.log(SPAM_FLOWS.AccountInfoReport);
+
+Output:
+
+account_info_report
+
+This is a flow identifier, not a separate "accountInfoReport()" socket method.
+
+---
+
+Message Builder
+
+Beilyss includes the "MB" module for building rich WhatsApp messages.
+
+const { MB } = require('@xeumingproject/beilyss');
+
+Use the Message Builder methods available in the installed version.
+
+---
+
+Development
+
+Clone the repository:
+
+git clone https://github.com/xeumingproject/beilyss.git
+
+cd Beilyss
+
+Install dependencies:
+
+npm install
+
+Build the project:
+
+npm run build
+
+---
+
+Project Information
+
+Information| Details
+Project| Beilyss
+Package| "@xeumingproject/beilyss"
+Developer| SatzNuxil
+Runtime| Node.js
+Module| CommonJS / ESM
+Repository| GitHub
+Branch| "satznuxil-dev"
+
+Repository
+
+"GitHub - xeumingproject/beilyss" (https://github.com/xeumingproject/beilyss)
+
+---
+
+Disclaimer
+
+Beilyss is an independent community fork and is not affiliated with, endorsed by, or officially supported by WhatsApp or Meta.
+
+Use this library responsibly and comply with applicable terms and laws.
+
+---
+
+<p align="center">
+  <b>SATZ NUXIL BAILEYS</b><br>
+  Engineered for Developers. Built for Possibilities.<br><br>
+  Developed by <b>SatzNuxil</b>
+</p>

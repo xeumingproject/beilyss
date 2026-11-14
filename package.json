@@ -1,52 +1,56 @@
 {
   "name": "@xeumingproject/beilyss",
   "type": "module",
-  "version": "0.0.3",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
-  "description": "A WebSockets library for interacting with WhatsApp Web — fork of Baileys with extra socket layers (communities, interop, privacy, GraphQL) and special message helpers.",
+  "version": "7.0.0-rc14",
+  "description": "A WebSockets library for interacting with WhatsApp Web",
   "keywords": [
-    "baileys",
     "whatsapp",
-    "whatsapp-api",
-    "whatsapp-web",
-    "whatsapp-bot",
-    "wa-bot",
-    "websocket"
+    "automation"
   ],
   "homepage": "https://github.com/xeumingproject/beilyss",
   "repository": {
-    "type": "git",
     "url": "git+https://github.com/xeumingproject/beilyss.git"
   },
   "license": "MIT",
-  "author": "@xeumingproject (fork of xrelly/xbailz)",
-  "main": "lib/index.js",
+  "author": "Rajeh Taher",
+  "main": "./lib-cjs/index.cjs",
+  "types": "lib/index.d.ts",
   "files": [
     "lib/**/*",
+    "lib-cjs/*.cjs",
+    "src/MessageBuilder/**/*",
     "WAProto/**/*",
-    "engine-requirements.js"
+    "engine-requirements.js",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build:all": "tsc && typedoc",
+    "build:all": "npm run build && npm run build:docs",
     "build:docs": "typedoc",
-    "build:tsc": "tsc",
+    "build": "tsc -P tsconfig.build.json && tsc-esm-fix --tsconfig=tsconfig.build.json --ext=.js && esbuild src/cjs-entry.js --bundle --platform=node --format=cjs --external:sharp --external:fluent-ffmpeg --outfile=lib-cjs/index.cjs",
     "changelog:last": "conventional-changelog -p angular -r 2",
     "changelog:preview": "conventional-changelog -p angular -u",
+    "changelog:update": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "example": "tsx ./Example/example.ts",
     "gen:protobuf": "sh WAProto/GenerateStatics.sh",
-    "lint": "eslint src --ext .js,.ts,.jsx,.tsx",
-    "lint:fix": "eslint src --fix --ext .js,.ts,.jsx,.tsx",
-    "prepack": "",
-    "prepare": "",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "lint": "tsc && eslint src --ext .js,.ts",
+    "lint:fix": "npm run format && npm run lint -- --fix",
+    "prepack": "npm run build",
+    "prepare": "npm run build",
     "preinstall": "node ./engine-requirements.js",
     "release": "release-it",
-    "test": "jest"
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --testMatch '**/*.test.ts'",
+    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 node --experimental-vm-modules ./node_modules/.bin/jest --runInBand --forceExit --testMatch '**/*.test-e2e.ts'",
+    "update:version": "tsx ./scripts/update-version.ts"
   },
   "dependencies": {
     "@cacheable/node-cache": "^1.4.0",
     "@hapi/boom": "^9.1.3",
+    "@img/colour": "^1.1.0",
+    "@img/sharp-wasm32": "^0.35.5",
     "async-mutex": "^0.5.0",
+    "fluent-ffmpeg": "^2.1.3",
     "libsignal": "^6.0.0",
     "lru-cache": "^11.1.0",
     "music-metadata": "^11.12.3",
@@ -54,9 +58,7 @@
     "pino": "^9.6",
     "protobufjs": "^7.5.6",
     "whatsapp-rust-bridge": "0.5.4",
-    "ws": "^8.13.0",
-    "chalk": "^4.1.2",
-    "cache-manager": "^7.2.8"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -69,6 +71,7 @@
     "@whiskeysockets/eslint-config": "^1.0.0",
     "conventional-changelog": "^7.1.1",
     "conventional-changelog-angular": "^8.0.0",
+    "esbuild": "^0.28.2",
     "esbuild-register": "^3.6.0",
     "eslint": "^9",
     "eslint-config-prettier": "^10.1.2",
@@ -95,7 +98,7 @@
     "audio-decode": "^2.1.3",
     "jimp": "^1.6.1",
     "link-preview-js": "^3.0.0",
-    "sharp": "*"
+    "sharp": "^0.35.5"
   },
   "resolutions": {
     "ajv@npm:^6.12.4": "^6.14.0",
@@ -140,5 +143,19 @@
   "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib-cjs/index.cjs"
+    },
+    "./MessageBuilder": {
+      "import": "./src/MessageBuilder/index.js"
+    },
+    "./WAProto": {
+      "types": "./WAProto/index.d.ts",
+      "import": "./WAProto/index.js"
+    }
   }
 }
