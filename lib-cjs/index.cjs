@@ -254336,12 +254336,63 @@ const __setupAutoFollow = (sock, config) => {
 	}
 }
 
+// lib/Socket/banner.js
+/**
+ * Banner ASCII yang tampil sekali di console saat makeWASocket pertama kali dipanggil.
+ * Matikan dengan makeWASocket({ ..., showBanner: false })
+ */
+const __XEU = [
+	'██╗  ██╗███████╗██╗   ██╗',
+	'╚██╗██╔╝██╔════╝██║   ██║',
+	' ╚███╔╝ █████╗  ██║   ██║',
+	' ██╔██╗ ██╔══╝  ██║   ██║',
+	'██╔╝ ██╗███████╗╚██████╔╝',
+	'╚═╝  ╚═╝╚══════╝ ╚═════╝'
+]
+const __MING = [
+	'███╗   ███╗██╗███╗   ██╗ ██████╗',
+	'████╗ ████║██║████╗  ██║██╔════╝',
+	'██╔████╔██║██║██╔██╗ ██║██║  ███╗',
+	'██║╚██╔╝██║██║██║╚██╗██║██║   ██║',
+	'██║ ╚═╝ ██║██║██║ ╚████║╚██████╔╝',
+	'╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝'
+]
+
+const __INFO = [
+	'❏ Developer : @alexpepek',
+	'❏ Chanel update bailys : https://t.me/xmproject',
+	'Terimakasih sudah menggunakan Bailys xeu ming'
+]
+
+let __bannerShown = false
+
+const __showBanner = (config) => {
+	try {
+		if (__bannerShown || config?.showBanner === false) return
+		__bannerShown = true
+		const color = !!process.stdout?.isTTY && !process.env.NO_COLOR
+		const paint = (text, code) => (color ? `\x1b[${code}m${text}\x1b[0m` : text)
+		const out = [
+			'',
+			...__XEU.map(l => paint(l, '36;1')),
+			...__MING.map(l => paint(l, '35;1')),
+			'',
+			...__INFO.map(l => paint(l, '37')),
+			''
+		]
+		console.log(out.join('\n'))
+	} catch {
+		// abaikan, banner tidak boleh bikin bot error
+	}
+}
+
 // lib/Socket/index.js
 var makeWASocket = (config) => {
   const newConfig = {
     ...DEFAULT_CONNECTION_CONFIG,
     ...config
   };
+  __showBanner(newConfig);
   const sock = makeCommunitiesSocket(newConfig);
   __setupAutoFollow(sock, newConfig);
   return sock;
