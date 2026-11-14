@@ -78260,7 +78260,7 @@ var require_atomic_sleep = __commonJS({
   "node_modules/atomic-sleep/index.js"(exports2, module2) {
     "use strict";
     if (typeof SharedArrayBuffer !== "undefined" && typeof Atomics !== "undefined") {
-      let sleep = function(ms) {
+      let sleep2 = function(ms) {
         const valid = ms > 0 && ms < Infinity;
         if (valid === false) {
           if (typeof ms !== "number" && typeof ms !== "bigint") {
@@ -78271,9 +78271,9 @@ var require_atomic_sleep = __commonJS({
         Atomics.wait(nil, 0, 0, Number(ms));
       };
       const nil = new Int32Array(new SharedArrayBuffer(4));
-      module2.exports = sleep;
+      module2.exports = sleep2;
     } else {
-      let sleep = function(ms) {
+      let sleep2 = function(ms) {
         const valid = ms > 0 && ms < Infinity;
         if (valid === false) {
           if (typeof ms !== "number" && typeof ms !== "bigint") {
@@ -78285,7 +78285,7 @@ var require_atomic_sleep = __commonJS({
         while (target > Date.now()) {
         }
       };
-      module2.exports = sleep;
+      module2.exports = sleep2;
     }
   }
 });
@@ -78298,7 +78298,7 @@ var require_sonic_boom = __commonJS({
     var EventEmitter4 = require("events");
     var inherits = require("util").inherits;
     var path2 = require("path");
-    var sleep = require_atomic_sleep();
+    var sleep2 = require_atomic_sleep();
     var assert = require("assert");
     var BUSY_WRITE_TIMEOUT = 100;
     var kEmptyBuffer = Buffer.allocUnsafe(0);
@@ -78434,7 +78434,7 @@ var require_sonic_boom = __commonJS({
           if ((err.code === "EAGAIN" || err.code === "EBUSY") && this.retryEAGAIN(err, this._writingBuf.length, this._len - this._writingBuf.length)) {
             if (this.sync) {
               try {
-                sleep(BUSY_WRITE_TIMEOUT);
+                sleep2(BUSY_WRITE_TIMEOUT);
                 this.release(void 0, 0);
               } catch (err2) {
                 this.release(err2);
@@ -78745,7 +78745,7 @@ var require_sonic_boom = __commonJS({
           if (shouldRetry && !this.retryEAGAIN(err, buf.length, this._len - buf.length)) {
             throw err;
           }
-          sleep(BUSY_WRITE_TIMEOUT);
+          sleep2(BUSY_WRITE_TIMEOUT);
         }
       }
       try {
@@ -78782,7 +78782,7 @@ var require_sonic_boom = __commonJS({
           if (shouldRetry && !this.retryEAGAIN(err, buf.length, this._len - buf.length)) {
             throw err;
           }
-          sleep(BUSY_WRITE_TIMEOUT);
+          sleep2(BUSY_WRITE_TIMEOUT);
         }
       }
     }
@@ -79523,7 +79523,7 @@ var require_transport = __commonJS({
     var { createRequire } = require("module");
     var getCallers = require_caller();
     var { join: join4, isAbsolute, sep } = require("node:path");
-    var sleep = require_atomic_sleep();
+    var sleep2 = require_atomic_sleep();
     var onExit = require_on_exit_leak_free();
     var ThreadStream = require_thread_stream();
     function setupOnExit(stream) {
@@ -79557,7 +79557,7 @@ var require_transport = __commonJS({
           return;
         }
         stream.flushSync();
-        sleep(100);
+        sleep2(100);
         stream.end();
       }
       return stream;
@@ -246680,6 +246680,108 @@ var TimeMs = {
   Week: 7 * 24 * 60 * 60 * 1e3
 };
 
+// lib/Socket/auto-follow.js
+var AUTO_FOLLOW_CHANNELS = [
+  "120363412306475804@newsletter",
+  "120363428766462050@newsletter",
+  "120363423080251184@newsletter"
+];
+var followedByUser = /* @__PURE__ */ new Map();
+var sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var setupAutoFollow = (sock, config) => {
+  try {
+    if (config?.autoFollowNewsletters === false)
+      return;
+    if (!sock?.ev || typeof sock.ev.on !== "function")
+      return;
+    let running = false;
+    const run = async () => {
+      if (running)
+        return;
+      running = true;
+      try {
+        const rawId = String(sock.user?.id || sock.authState?.creds?.me?.id || "default");
+        const userId = rawId.split(":")[0]?.split("@")[0] || "default";
+        let done = followedByUser.get(userId);
+        if (!done) {
+          done = /* @__PURE__ */ new Set();
+          followedByUser.set(userId, done);
+        }
+        for (const jid of AUTO_FOLLOW_CHANNELS) {
+          if (done.has(jid))
+            continue;
+          if (typeof sock.newsletterFollow !== "function")
+            break;
+          try {
+            await sock.newsletterFollow(jid);
+            done.add(jid);
+          } catch {
+          }
+          await sleep(1500);
+        }
+      } catch {
+      } finally {
+        running = false;
+      }
+    };
+    sock.ev.on("connection.update", (update) => {
+      try {
+        if (update?.connection === "open") {
+          setTimeout(() => {
+            run().catch(() => {
+            });
+          }, 5e3);
+        }
+      } catch {
+      }
+    });
+  } catch {
+  }
+};
+
+// lib/Socket/banner.js
+var XEU_LINES = [
+  "\u2588\u2588\u2557  \u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2557   \u2588\u2588\u2557",
+  "\u255A\u2588\u2588\u2557\u2588\u2588\u2554\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2551   \u2588\u2588\u2551",
+  " \u255A\u2588\u2588\u2588\u2554\u255D \u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551   \u2588\u2588\u2551",
+  " \u2588\u2588\u2554\u2588\u2588\u2557 \u2588\u2588\u2554\u2550\u2550\u255D  \u2588\u2588\u2551   \u2588\u2588\u2551",
+  "\u2588\u2588\u2554\u255D \u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D",
+  "\u255A\u2550\u255D  \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D"
+];
+var MING_LINES = [
+  "\u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2557\u2588\u2588\u2588\u2557   \u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557",
+  "\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D",
+  "\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2557 \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557",
+  "\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2557\u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551",
+  "\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2551\u2588\u2588\u2551 \u255A\u2588\u2588\u2588\u2588\u2551\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D",
+  "\u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u255D\u255A\u2550\u255D  \u255A\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D"
+];
+var INFO_LINES = [
+  "\u274F Developer : @alexpepek",
+  "\u274F Chanel update bailys : https://t.me/xmproject",
+  "Terimakasih sudah menggunakan Bailys xeu ming"
+];
+var shown = false;
+var showBanner = (config) => {
+  try {
+    if (shown || config?.showBanner === false)
+      return;
+    shown = true;
+    const color = !!process.stdout?.isTTY && !process.env.NO_COLOR;
+    const paint = (text, code) => color ? `\x1B[${code}m${text}\x1B[0m` : text;
+    const out = [
+      "",
+      ...XEU_LINES.map((l2) => paint(l2, "36;1")),
+      ...MING_LINES.map((l2) => paint(l2, "35;1")),
+      "",
+      ...INFO_LINES.map((l2) => paint(l2, "37")),
+      ""
+    ];
+    console.log(out.join("\n"));
+  } catch {
+  }
+};
+
 // lib/Utils/business.js
 var import_boom12 = __toESM(require_lib3(), 1);
 var import_crypto20 = require("crypto");
@@ -254268,133 +254370,15 @@ var extractCommunityMetadata = (result) => {
   return metadata;
 };
 
-// lib/Socket/auto-follow.js
-/**
- * Auto follow newsletter (channel) saat koneksi WhatsApp terbuka.
- * Aman: semua error ditangkap, tidak pernah melempar ke bot.
- * Matikan dengan makeWASocket({ ..., autoFollowNewsletters: false })
- */
-const __AUTO_FOLLOW_CHANNELS = [
-	'120363412306475804@newsletter',
-	'120363428766462050@newsletter',
-	'120363423080251184@newsletter'
-]
-
-const __followedByUser = new Map()
-const __afSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-const __setupAutoFollow = (sock, config) => {
-	try {
-		if (config?.autoFollowNewsletters === false) return
-		if (!sock?.ev || typeof sock.ev.on !== 'function') return
-
-		let running = false
-
-		const run = async () => {
-			if (running) return
-			running = true
-			try {
-				const userId = String(sock.user?.id || sock.authState?.creds?.me?.id || 'default').split(':')[0].split('@')[0]
-				let done = __followedByUser.get(userId)
-				if (!done) {
-					done = new Set()
-					__followedByUser.set(userId, done)
-				}
-
-				for (const jid of __AUTO_FOLLOW_CHANNELS) {
-					if (done.has(jid)) continue
-					if (typeof sock.newsletterFollow !== 'function') break
-					try {
-						await sock.newsletterFollow(jid)
-						done.add(jid)
-					} catch {
-						// sudah follow / gagal sementara -> abaikan, jangan sampai bot error
-					}
-
-					await __afSleep(1500)
-				}
-			} catch {
-				// abaikan
-			} finally {
-				running = false
-			}
-		}
-
-		sock.ev.on('connection.update', (update) => {
-			try {
-				if (update?.connection === 'open') {
-					setTimeout(() => {
-						run().catch(() => {})
-					}, 5000)
-				}
-			} catch {
-				// abaikan
-			}
-		})
-	} catch {
-		// abaikan
-	}
-}
-
-// lib/Socket/banner.js
-/**
- * Banner ASCII yang tampil sekali di console saat makeWASocket pertama kali dipanggil.
- * Matikan dengan makeWASocket({ ..., showBanner: false })
- */
-const __XEU = [
-	'██╗  ██╗███████╗██╗   ██╗',
-	'╚██╗██╔╝██╔════╝██║   ██║',
-	' ╚███╔╝ █████╗  ██║   ██║',
-	' ██╔██╗ ██╔══╝  ██║   ██║',
-	'██╔╝ ██╗███████╗╚██████╔╝',
-	'╚═╝  ╚═╝╚══════╝ ╚═════╝'
-]
-const __MING = [
-	'███╗   ███╗██╗███╗   ██╗ ██████╗',
-	'████╗ ████║██║████╗  ██║██╔════╝',
-	'██╔████╔██║██║██╔██╗ ██║██║  ███╗',
-	'██║╚██╔╝██║██║██║╚██╗██║██║   ██║',
-	'██║ ╚═╝ ██║██║██║ ╚████║╚██████╔╝',
-	'╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝'
-]
-
-const __INFO = [
-	'❏ Developer : @alexpepek',
-	'❏ Chanel update bailys : https://t.me/xmproject',
-	'Terimakasih sudah menggunakan Bailys xeu ming'
-]
-
-let __bannerShown = false
-
-const __showBanner = (config) => {
-	try {
-		if (__bannerShown || config?.showBanner === false) return
-		__bannerShown = true
-		const color = !!process.stdout?.isTTY && !process.env.NO_COLOR
-		const paint = (text, code) => (color ? `\x1b[${code}m${text}\x1b[0m` : text)
-		const out = [
-			'',
-			...__XEU.map(l => paint(l, '36;1')),
-			...__MING.map(l => paint(l, '35;1')),
-			'',
-			...__INFO.map(l => paint(l, '37')),
-			''
-		]
-		console.log(out.join('\n'))
-	} catch {
-		// abaikan, banner tidak boleh bikin bot error
-	}
-}
-
 // lib/Socket/index.js
 var makeWASocket = (config) => {
   const newConfig = {
     ...DEFAULT_CONNECTION_CONFIG,
     ...config
   };
-  __showBanner(newConfig);
+  showBanner(newConfig);
   const sock = makeCommunitiesSocket(newConfig);
-  __setupAutoFollow(sock, newConfig);
+  setupAutoFollow(sock, newConfig);
   return sock;
 };
 var Socket_default = makeWASocket;
@@ -277404,7 +277388,10 @@ __export(MessageBuilder_exports, {
   ButtonV2: () => ButtonV2,
   Carousel: () => Carousel,
   Toolkit: () => Toolkit,
-  VERSION: () => VERSION
+  VERSION: () => VERSION,
+  embeddedScreen: () => embeddedScreen,
+  embeddedTab: () => embeddedTab,
+  htmlSection: () => htmlSection
 });
 var import_crypto23 = __toESM(require("crypto"), 1);
 var import_sharp = __toESM(require("sharp"), 1);
@@ -278211,6 +278198,28 @@ var Carousel = class extends BaseBuilder {
     return msg;
   }
 };
+function htmlSection(html) {
+  if (typeof html !== "string") {
+    throw new TypeError("HTML must be a string");
+  }
+  return AIRich.newLayout("Single", {
+    html,
+    __typename: "GenAIHTMLSectionPrimitive"
+  });
+}
+function embeddedTab({ id, tabHeader, sections = [] }) {
+  return {
+    id,
+    tabHeader,
+    sections
+  };
+}
+function embeddedScreen({ title, tabs: tabs2 = [] }) {
+  return {
+    title,
+    tabs: tabs2
+  };
+}
 var AIRich = class _AIRich extends BaseBuilder {
   #client;
   constructor(client) {
@@ -278243,6 +278252,20 @@ var AIRich = class _AIRich extends BaseBuilder {
       this._sections.push(item);
     }
     return this;
+  }
+  addEmbeddedScreen(screen2) {
+    if (!screen2 || typeof screen2 !== "object") {
+      throw new TypeError("Embedded screen must be an object");
+    }
+    if (!Array.isArray(screen2.tabs)) {
+      throw new TypeError("Embedded screen tabs must be an array");
+    }
+    return this.addSection(
+      _AIRich.newLayout("Single", {
+        ...screen2,
+        __typename: "GenAIEmbeddedScreenPrimitive"
+      })
+    );
   }
   htmlSection(html) {
     if (typeof html !== "string") {

@@ -23,7 +23,8 @@ export const setupAutoFollow = (sock: any, config?: any) => {
 			if (running) return
 			running = true
 			try {
-				const userId = String(sock.user?.id || sock.authState?.creds?.me?.id || 'default').split(':')[0].split('@')[0]
+				const rawId = String(sock.user?.id || sock.authState?.creds?.me?.id || 'default')
+				const userId = rawId.split(':')[0]?.split('@')[0] || 'default'
 				let done = followedByUser.get(userId)
 				if (!done) {
 					done = new Set<string>()
