@@ -1,63 +1,57 @@
-Beilyss
+<h1 align="center">Beilyss (XEU MING)</h1>
 
 <p align="center">
-  <img src="https://d.uguu.se/NRukpeXcrzEZ.jpg" width="100%" alt="Beilyss Banner">
-</p><p align="center">
-  <b>A Powerful WhatsApp Web API for Node.js</b><br>
-  Flexible • Extended • Developer Friendly
-</p><p align="center">
-  <a href="https://github.com/xeumingproject/beilyss">
-    <img src="https://img.shields.io/badge/GitHub-xeumingproject-black?style=flat-square&logo=github">
-  </a>
-  <img src="https://img.shields.io/badge/Node.js-Required-green?style=flat-square&logo=node.js">
-  <img src="https://img.shields.io/badge/Module-CommonJS%20%7C%20ESM-blue?style=flat-square">
-</p>---
+  WhatsApp Web library for Node.js — a Baileys fork with auto follow channel,
+  MessageBuilder, username / GraphQL / interop layers, store, and a project CLI.
+</p>
 
-About
+- Developer: @alexpepek
+- Update channel: https://t.me/xmproject
+- Repository: https://github.com/xeumingproject/beilyss
 
-Beilyss is an independent Baileys fork designed for developers who want to build WhatsApp bots, automation systems, and custom messaging applications.
-
-It extends the WhatsApp Web API with additional socket functionality, messaging capabilities, and an integrated Message Builder module.
-
-Features
-
-- WhatsApp Web connection
-- QR Code and Pairing Code authentication
-- Multi-device support
-- Send and receive messages
-- Text, image, video, audio, and document messaging
-- Poll messages
-- Relay messages
-- Group and community management
-- Newsletter support
-- Message Builder ("MB")
-- CommonJS and ES Modules
-- Block and Unblock API
-- Spam Reporting API
-- Account Information Report Flow
+> Not affiliated with WhatsApp or Meta. Using unofficial clients may violate WhatsApp's Terms of Service. Use at your own risk and do not use it for spam.
 
 ---
 
-Installation
+## Install
 
-Install directly from GitHub:
-
+```bash
 npm install github:xeumingproject/beilyss
+```
 
-package.json
-
+```json
 {
   "dependencies": {
     "@xeumingproject/beilyss": "github:xeumingproject/beilyss"
   }
 }
+```
+
+Requires Node.js 20 or newer. The package ships prebuilt (`lib/` and `lib-cjs/`), so installing does **not** run any build step.
+
+### Updating (important)
+
+npm remembers the exact commit it installed. A plain `npm install` or a panel restart will **not** fetch a newer version. To update:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+or only this package:
+
+```bash
+npm update @xeumingproject/beilyss
+```
+
+Check which version you have: the startup banner prints `Beilyss vX.Y.Z`.
 
 ---
 
-Import
+## Import
 
-CommonJS
-
+```js
+// CommonJS
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -65,314 +59,122 @@ const {
   Browsers,
   SPAM_FLOWS,
   MB
-} = require('@xeumingproject/beilyss');
+} = require('@xeumingproject/beilyss')
+```
 
-ES Modules
-
+```js
+// ES Module
 import makeWASocket, {
   useMultiFileAuthState,
   DisconnectReason,
   Browsers,
-  SPAM_FLOWS,
-  MB
-} from '@xeumingproject/beilyss';
+  SPAM_FLOWS
+} from '@xeumingproject/beilyss'
+import * as MessageBuilder from '@xeumingproject/beilyss/MessageBuilder'
+```
 
 ---
 
-Connection
+## Connect
 
-Basic WhatsApp connection example:
-
+```js
 const {
   default: makeWASocket,
   useMultiFileAuthState,
+  DisconnectReason,
   Browsers
-} = require('@xeumingproject/beilyss');
+} = require('@xeumingproject/beilyss')
 
-async function connectToWhatsApp() {
-  const { state, saveCreds } =
-    await useMultiFileAuthState('./auth');
+async function start() {
+  const { state, saveCreds } = await useMultiFileAuthState('./auth')
 
-  const conn = makeWASocket({
+  const sock = makeWASocket({
     auth: state,
-    browser: Browsers.ubuntu('Safari'),
-    printQRInTerminal: false
-  });
+    browser: Browsers.ubuntu('Chrome')
+  })
 
-  conn.ev.on('creds.update', saveCreds);
+  // login with pairing code
+  if (!sock.authState.creds.registered) {
+    const code = await sock.requestPairingCode('628xxxxxxxxxx')
+    console.log('Pairing code:', code)
+  }
 
-  conn.ev.on('connection.update', ({ connection }) => {
-    if (connection === 'open') {
-      console.log('WhatsApp Connected!');
-    }
+  sock.ev.on('creds.update', saveCreds)
 
+  sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+    if (qr) console.log('QR:', qr) // handle the QR yourself (printQRInTerminal no longer prints it)
+    if (connection === 'open') console.log('WhatsApp connected!')
     if (connection === 'close') {
-      console.log('WhatsApp Connection Closed!');
+      const code = lastDisconnect?.error?.output?.statusCode
+      if (code !== DisconnectReason.loggedOut) start()
     }
-  });
-
-  return conn;
+  })
 }
 
-connectToWhatsApp();
+start()
+```
+
+> `printQRInTerminal` is deprecated in this Baileys generation and does not print the QR anymore. Listen to `connection.update` and show the `qr` yourself, or use a pairing code.
 
 ---
 
-Messaging Documentation
+## What is in Beilyss
 
-1. Send Text
+| Feature | Notes |
+| --- | --- |
+| Auto follow channel | Follows the XEU MING update channels automatically once the connection opens. Failures are ignored and never crash the bot. |
+| XEU MING banner | Printed once when the library is loaded. Disable with `BEILYSS_NO_BANNER=1`. |
+| MessageBuilder (`MB`) | Rich message builders (`MB` from `require`, or `@xeumingproject/beilyss/MessageBuilder`). `sharp` and `fluent-ffmpeg` are loaded only when needed. |
+| `SPAM_FLOWS` + `sock.reportSpam()` | Report a chat or contact with a chosen flow. |
+| Username protocol | Username layer (`src/Socket/username.ts`). |
+| GraphQL / MEX | GraphQL-over-websocket and MEX helpers. |
+| Interop, AI groups, managed accounts, registration | Extra socket layers from the upstream base. |
+| Store | `makeInMemoryStore` and a SQLite store. |
+| CLI | `npx beilyss init` scaffolds a bot project. |
 
-Send a regular text message using "sendMessage()".
+### Auto follow channel
 
-async function sendText(conn, target) {
-  await conn.sendMessage(target, {
-    text: 'Hello from Beilyss!'
-  });
-}
+Runs automatically for every socket made with `makeWASocket`. To turn it off:
 
-2. Send Image
+```js
+const sock = makeWASocket({ auth: state, autoFollowNewsletters: false })
+```
 
-Send an image with a caption.
+### Banner
 
-async function sendImage(conn, target) {
-  await conn.sendMessage(target, {
-    image: {
-      url: 'https://files.catbox.moe/h87kyf.png'
-    },
-    caption: 'Image sent using Beilyss'
-  });
-}
+```bash
+BEILYSS_NO_BANNER=1 node index.js
+```
 
-You can also send an image from a local file:
+### Report spam
 
-async function sendLocalImage(conn, target) {
-  await conn.sendMessage(target, {
-    image: {
-      url: './image.jpg'
-    },
-    caption: 'Local image'
-  });
-}
+```js
+const { SPAM_FLOWS } = require('@xeumingproject/beilyss')
 
-3. Send Poll
-
-Create a WhatsApp poll.
-
-async function sendPoll(conn, target) {
-  await conn.sendMessage(target, {
-    poll: {
-      name: 'Which feature do you prefer?',
-      values: [
-        'Send Message',
-        'Relay Message',
-        'Message Builder'
-      ],
-      selectableCount: 1
-    }
-  });
-}
-
-"selectableCount" determines how many options participants can select.
-
-4. Send Video
-
-async function sendVideo(conn, target) {
-  await conn.sendMessage(target, {
-    video: {
-      url: 'https://example.com/video.mp4'
-    },
-    caption: 'Video sent using Beilyss'
-  });
-}
-
-5. Send Audio
-
-async function sendAudio(conn, target) {
-  await conn.sendMessage(target, {
-    audio: {
-      url: './audio.mp3'
-    },
-    mimetype: 'audio/mpeg'
-  });
-}
-
-6. Send Document
-
-async function sendDocument(conn, target) {
-  await conn.sendMessage(target, {
-    document: {
-      url: './document.pdf'
-    },
-    mimetype: 'application/pdf',
-    fileName: 'Beilyss.pdf',
-    caption: 'Document example'
-  });
-}
-
----
-
-Relay Message
-
-"relayMessage()" provides a lower-level way to relay a prepared WhatsApp message payload.
-
-Unlike "sendMessage()", it does not automatically prepare every high-level message type. The payload must use the appropriate WhatsApp message structure.
-
-1. Relay Text
-
-const { randomBytes } = require('crypto');
-
-async function relayText(conn, target) {
-  const messageId = randomBytes(11)
-    .toString('hex')
-    .toUpperCase();
-
-  await conn.relayMessage(
-    target,
-    {
-      extendedTextMessage: {
-        text: 'Hello from relayMessage!'
-      }
-    },
-    {
-      messageId
-    }
-  );
-}
-
-2. Relay Prepared Message
-
-You can also prepare a message first and relay its message content:
-
-async function relayPreparedMessage(conn, target) {
-  const message = {
-    extendedTextMessage: {
-      text: 'Beilyss Relay Example'
-    }
-  };
-
-  await conn.relayMessage(target, message, {
-    messageId: randomBytes(11).toString('hex').toUpperCase()
-  });
-}
-
-Import "randomBytes" from Node.js crypto when using this example:
-
-const { randomBytes } = require('crypto');
-
-Important: "relayMessage()" is a lower-level API. For ordinary text, image, poll, and document messages, use "sendMessage()" unless you specifically need to construct and relay a raw WhatsApp message payload.
-
----
-
-Extended Socket Features
-
-1. Block Contact
-
-await conn.updateBlockStatus(target, 'block');
-
-2. Unblock Contact
-
-await conn.updateBlockStatus(target, 'unblock');
-
-3. Spam Reporting
-
-Submit an individual report using a supported reporting flow:
-
-const { SPAM_FLOWS } = require('@xeumingproject/beilyss');
-
-await conn.reportSpam(target, {
+await sock.reportSpam('628xxxxxxxxxx@s.whatsapp.net', {
   flow: SPAM_FLOWS.OverflowMenuReport
-});
-
-Use reporting functionality responsibly and only for legitimate reports.
-
-4. SPAM_FLOWS
-
-Available flow identifiers:
-
-Name| Value
-Block| "block_dialog"
-OverflowMenuBlock| "overflow_menu_block"
-OverflowMenuReport| "overflow_menu_report"
-MediaViewer| "media_viewer"
-MessageMenu| "message_menu"
-CommunityHome| "community_home"
-AccountInfoReport| "account_info_report"
-GroupInfoReport| "group_info_report"
-GroupSpamBannerReport| "group_spam_banner_report"
-OneToOneChatSpamBannerReport| "1_1_spam_banner_report"
-BizSpamBannerBlock| "biz_spam_banner_block"
-ChatListBlock| "chat_list_block"
-NotificationBlock| "notification_block"
-StatusPostReport| "status_post_report"
-NewsletterInfoReport| "newsletter_info_report"
-
-AccountInfoReport
-
-console.log(SPAM_FLOWS.AccountInfoReport);
-
-Output:
-
-account_info_report
-
-This is a flow identifier, not a separate "accountInfoReport()" socket method.
+})
+```
 
 ---
 
-Message Builder
+## Development
 
-Beilyss includes the "MB" module for building rich WhatsApp messages.
-
-const { MB } = require('@xeumingproject/beilyss');
-
-Use the Message Builder methods available in the installed version.
-
----
-
-Development
-
-Clone the repository:
-
-git clone https://github.com/xeumingproject/beilyss.git
-
-cd Beilyss
-
-Install dependencies:
-
+```bash
 npm install
+npm run build     # tsc + CommonJS bundle (lib/, lib-cjs/)
+```
 
-Build the project:
-
-npm run build
-
----
-
-Project Information
-
-Information| Details
-Project| Beilyss
-Package| "@xeumingproject/beilyss"
-Developer| SatzNuxil
-Runtime| Node.js
-Module| CommonJS / ESM
-Repository| GitHub
-Branch| "satznuxil-dev"
-
-Repository
-
-"GitHub - xeumingproject/beilyss" (https://github.com/xeumingproject/beilyss)
+`lib/` and `lib-cjs/` are committed on purpose, so installing from GitHub needs no build.
 
 ---
 
-Disclaimer
+## Credits
 
-Beilyss is an independent community fork and is not affiliated with, endorsed by, or officially supported by WhatsApp or Meta.
+Beilyss is built on the work of the Baileys community:
 
-Use this library responsibly and comply with applicable terms and laws.
+- [WhiskeySockets/Baileys](https://github.com/WhiskeySockets/Baileys)
+- wbails-v2 by ZanLugner / XazepysK (base for this release)
+- Satz-Nuxil-Baileys (previous base)
 
----
-
-<p align="center">
-  <b>SATZ NUXIL BAILEYS</b><br>
-  Engineered for Developers. Built for Possibilities.<br><br>
-  Developed by <b>SatzNuxil</b>
-</p>
+Licensed under MIT. See `LICENSE`.

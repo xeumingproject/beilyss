@@ -85,14 +85,7 @@ export type MessageWithContextInfo =
 export type DownloadableMessage = { mediaKey?: Uint8Array | null; directPath?: string | null; url?: string | null }
 
 export type MessageReceiptType =
-	| 'read'
-	| 'read-self'
-	| 'hist_sync'
-	| 'peer_msg'
-	| 'sender'
-	| 'inactive'
-	| 'played'
-	| undefined
+	'read' | 'read-self' | 'hist_sync' | 'peer_msg' | 'sender' | 'inactive' | 'played' | undefined
 
 export type MediaConnInfo = {
 	auth: string
@@ -171,6 +164,21 @@ type RequestPhoneNumber = {
 	requestPhoneNumber: boolean
 }
 
+export type StickerPackMessageContent = {
+	stickerPackId?: string
+	name?: string
+	author?: string
+	publisher?: string
+	packDescription?: string
+	caption?: string
+	stickers: Array<{
+		sticker: WAMediaUpload | string | Buffer
+		isAnimated?: boolean
+		emojis?: string[]
+		accessibilityLabel?: string
+	}>
+}
+
 export type AnyMediaMessageContent = (
 	| ({
 			image: WAMediaUpload
@@ -197,8 +205,10 @@ export type AnyMediaMessageContent = (
 			seconds?: number
 	  }
 	| ({
-			sticker: WAMediaUpload
+			sticker: WAMediaUpload | string | Buffer
 			isAnimated?: boolean
+			author?: string
+			publisher?: string
 	  } & WithDimensions)
 	| ({
 			document: WAMediaUpload
@@ -229,7 +239,22 @@ export type WASendableProduct = Omit<proto.Message.ProductMessage.IProductSnapsh
 	productImage: WAMediaUpload
 }
 
+export type InteractiveButtonsContent = {
+	text?: string
+	interactiveButtons: proto.Message.InteractiveMessage.NativeFlowMessage.INativeFlowButton[]
+	messageParamsJson?: string
+	bloksWidget?: proto.Message.InteractiveMessage.IBloksWidget
+	carousels?: proto.Message.IInteractiveMessage[]
+	header?: proto.Message.InteractiveMessage.IHeader
+	footer?: proto.Message.InteractiveMessage.IFooter
+}
+
 export type AnyRegularMessageContent = (
+	| InteractiveButtonsContent
+	| { buttonsMessage: proto.Message.IButtonsMessage }
+	| { templateMessage: proto.Message.ITemplateMessage }
+	| { listMessage: proto.Message.IListMessage }
+	| { stickerPackMessage: StickerPackMessageContent }
 	| ({
 			text: string
 			linkPreview?: WAUrlInfo | null
@@ -322,6 +347,10 @@ export type MessageRelayOptions = MinimalRelayOptions & {
 	useUserDevicesCache?: boolean
 	/** jid list of participants for status@broadcast */
 	statusJidList?: string[]
+	/** only send to recipients that are not "me" devices */
+	isSecret?: boolean
+	/** only send to me-devices (not to recipients' other devices) */
+	isProtected?: boolean
 }
 
 export type MiscMessageGenerationOptions = MinimalRelayOptions & {

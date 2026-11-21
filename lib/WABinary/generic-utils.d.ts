@@ -12,4 +12,9 @@ export declare const reduceBinaryNodeToDictionary: (node: BinaryNode, tag: strin
 };
 export declare const getBinaryNodeMessages: ({ content }: BinaryNode) => proto.WebMessageInfo[];
 export declare function binaryNodeToString(node: BinaryNode | BinaryNode['content'], i?: number): string;
+export declare const getBinaryNodeFilter: (node: unknown) => boolean;
+export declare const getAdditionalNode: (name?: string) => BinaryNode[];
+export declare const getBinaryFilteredBizBot: (nodeContent: unknown) => boolean;
+export declare const getButtonArgs: (message: proto.IMessage) => BinaryNode;
+export declare const getButtonType: (message: proto.IMessage) => string | undefined;
 //# sourceMappingURL=generic-utils.d.ts.map

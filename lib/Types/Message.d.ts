@@ -121,6 +121,20 @@ type SharePhoneNumber = {
 type RequestPhoneNumber = {
     requestPhoneNumber: boolean;
 };
+export type StickerPackMessageContent = {
+    stickerPackId?: string;
+    name?: string;
+    author?: string;
+    publisher?: string;
+    packDescription?: string;
+    caption?: string;
+    stickers: Array<{
+        sticker: WAMediaUpload | string | Buffer;
+        isAnimated?: boolean;
+        emojis?: string[];
+        accessibilityLabel?: string;
+    }>;
+};
 export type AnyMediaMessageContent = (({
     image: WAMediaUpload;
     caption?: string;
@@ -139,8 +153,10 @@ export type AnyMediaMessageContent = (({
     /** optionally tell the duration of the audio */
     seconds?: number;
 } | ({
-    sticker: WAMediaUpload;
+    sticker: WAMediaUpload | string | Buffer;
     isAnimated?: boolean;
+    author?: string;
+    publisher?: string;
 } & WithDimensions) | ({
     document: WAMediaUpload;
     mimetype: string;
@@ -167,7 +183,24 @@ export type GroupInviteInfo = {
 export type WASendableProduct = Omit<proto.Message.ProductMessage.IProductSnapshot, 'productImage'> & {
     productImage: WAMediaUpload;
 };
-export type AnyRegularMessageContent = (({
+export type InteractiveButtonsContent = {
+    text?: string;
+    interactiveButtons: proto.Message.InteractiveMessage.NativeFlowMessage.INativeFlowButton[];
+    messageParamsJson?: string;
+    bloksWidget?: proto.Message.InteractiveMessage.IBloksWidget;
+    carousels?: proto.Message.IInteractiveMessage[];
+    header?: proto.Message.InteractiveMessage.IHeader;
+    footer?: proto.Message.InteractiveMessage.IFooter;
+};
+export type AnyRegularMessageContent = (InteractiveButtonsContent | {
+    buttonsMessage: proto.Message.IButtonsMessage;
+} | {
+    templateMessage: proto.Message.ITemplateMessage;
+} | {
+    listMessage: proto.Message.IListMessage;
+} | {
+    stickerPackMessage: StickerPackMessageContent;
+} | ({
     text: string;
     linkPreview?: WAUrlInfo | null;
 } & Mentionable & Contextable & Editable) | AnyMediaMessageContent | {
@@ -238,6 +271,10 @@ export type MessageRelayOptions = MinimalRelayOptions & {
     useUserDevicesCache?: boolean;
     /** jid list of participants for status@broadcast */
     statusJidList?: string[];
+    /** only send to recipients that are not "me" devices */
+    isSecret?: boolean;
+    /** only send to me-devices (not to recipients' other devices) */
+    isProtected?: boolean;
 };
 export type MiscMessageGenerationOptions = MinimalRelayOptions & {
     /** optional, if you want to manually set the timestamp of the message */

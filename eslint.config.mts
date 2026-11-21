@@ -27,8 +27,12 @@ export default defineConfig([globalIgnores([
     "**/docs",
     "**/proto-extract",
 ]),
-...base,
+...base.map(c => ({
+    ...c,
+    files: ["**/*.ts", "**/*.js", "**/*.mts", "**/*.mjs"]
+})),
 {
+    files: ["**/*.ts", "**/*.js", "**/*.mts", "**/*.mjs"],
     extends: [
       ...compat.extends("plugin:prettier/recommended"),
  		],

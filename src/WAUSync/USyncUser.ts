@@ -6,6 +6,10 @@ export class USyncUser {
 	usernameKey?: string
 	type?: string
 	personaId?: string
+	pictureId?: string
+	verifiedNameSerial?: string
+	businessProfileTag?: string
+	sidelistDelete?: boolean
 
 	withId(id: string) {
 		this.id = id
@@ -39,6 +43,26 @@ export class USyncUser {
 
 	withPersonaId(personaId: string) {
 		this.personaId = personaId
+		return this
+	}
+
+	withPictureId(pictureId: string) {
+		this.pictureId = pictureId
+		return this
+	}
+
+	withVerifiedNameSerial(value: string) {
+		this.verifiedNameSerial = value
+		return this
+	}
+
+	withBusinessProfileTag(value: string) {
+		this.businessProfileTag = value
+		return this
+	}
+
+	withSidelistDelete(value = true) {
+		this.sidelistDelete = value
 		return this
 	}
 }

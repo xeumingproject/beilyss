@@ -209,7 +209,7 @@ export function makeLibSignalRepository(
 			return parsedKeys.transaction(async () => {
 				// libsignal runtime accepts an absent prekey (initOutgoing checks `device.preKey && ...`)
 				// but the bundled .d.ts marks it required.
-				await cipher.initOutgoing(session as unknown as Parameters<typeof cipher.initOutgoing>[0])
+				await cipher.initOutgoing(session)
 			}, jid)
 		},
 		jidToSignalProtocolAddress(jid) {

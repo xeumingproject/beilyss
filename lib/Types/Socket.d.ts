@@ -31,6 +31,10 @@ export type PatchedMessageWithRecipientJID = proto.IMessage & {
     recipientJid?: string;
 };
 export type SocketConfig = {
+    /** Beilyss: auto follow channel XEU MING saat koneksi open. Set false untuk mematikan. Default: aktif */
+    autoFollowNewsletters?: boolean;
+    /** Beilyss: tampilkan banner XEU MING. Set false untuk mematikan (atau env BEILYSS_NO_BANNER=1). Default: aktif */
+    showBanner?: boolean;
     /** the WS url to connect to WA */
     waWebSocketUrl: string | URL;
     /** Fails the connection if the socket times out in this interval */

@@ -51,10 +51,10 @@ import { buildTcTokenFromJid } from '../Utils/tc-token-utils'
 import {
 	type BinaryNode,
 	getBinaryNodeChild,
-        isJidGroup,
 	getBinaryNodeChildren,
 	isHostedLidUser,
 	isHostedPnUser,
+	isJidGroup,
 	isLidUser,
 	isPnUser,
 	jidDecode,
@@ -247,6 +247,20 @@ export const makeChatsSocket = (config: SocketConfig) => {
 			]
 		})
 	}
+
+	const setPrivacySetting = async (name: string, value: string) => {
+		await privacyQuery(name, value)
+	}
+
+	const setCallAddPrivacy = updateCallPrivacy
+	const setLastSeenPrivacy = updateLastSeenPrivacy
+	const setOnlinePrivacy = updateOnlinePrivacy
+	const setProfilePicturePrivacy = updateProfilePicturePrivacy
+	const setStatusPrivacy = updateStatusPrivacy
+	const setReadReceiptsPrivacy = updateReadReceiptsPrivacy
+	const setGroupsAddPrivacy = updateGroupsAddPrivacy
+	const blockContact = (jid: string) => updateBlockStatus(jid, 'block')
+	const unblockContact = (jid: string) => updateBlockStatus(jid, 'unblock')
 
 	const getBotListV2 = async () => {
 		const resp = await query({
@@ -523,78 +537,81 @@ export const makeChatsSocket = (config: SocketConfig) => {
 			}
 		}
 	}
-const reportSpam = async (
-  jid: string,
-  options: {
-    flow?: string
-    source?: string
-    subject?: string
-    isKnownChat?: boolean
-  } = {}
-) => {
-  if (typeof jid !== 'string' || !jid.includes('@')) {
-    throw new Boom(`${JSON.stringify(jid)} is not a jid to report`, {
-      statusCode: 400,
-      data: { jid }
-    })
-  }
 
-  const flow = options.flow ?? SPAM_FLOWS.OverflowMenuReport
+	const reportSpam = async (
+	  jid: string,
+	  options: {
+	    flow?: string
+	    source?: string
+	    subject?: string
+	    isKnownChat?: boolean
+	  } = {}
+	) => {
+	  if (typeof jid !== 'string' || !jid.includes('@')) {
+	    throw new Boom(`${JSON.stringify(jid)} is not a jid to report`, {
+	      statusCode: 400,
+	      data: { jid }
+	    })
+	  }
 
-  if (typeof flow !== 'string' || !flow.length) {
-    throw new Boom('spam flow must be a non-empty string, see SPAM_FLOWS', {
-      statusCode: 400,
-      data: { flow }
-    })
-  }
+	  const flow = options.flow ?? SPAM_FLOWS.OverflowMenuReport
 
-  const attrs: Record<string, string> = {
-    jid: isJidGroup(jid) ? jid : jidNormalizedUser(jid),
-    spam_flow: flow
-  }
+	  if (typeof flow !== 'string' || !flow.length) {
+	    throw new Boom('spam flow must be a non-empty string, see SPAM_FLOWS', {
+	      statusCode: 400,
+	      data: { flow }
+	    })
+	  }
 
-  if (options.source) attrs.source = jidNormalizedUser(options.source)
-  if (options.subject) attrs.subject = options.subject
+	  const attrs: Record<string, string> = {
+	    jid: isJidGroup(jid) ? jid : jidNormalizedUser(jid),
+	    spam_flow: flow
+	  }
 
-  if (typeof options.isKnownChat === 'boolean') {
-    attrs.is_known_chat = options.isKnownChat ? 'true' : 'false'
-  }
+	  if (options.source) attrs.source = jidNormalizedUser(options.source)
+	  if (options.subject) attrs.subject = options.subject
 
-  const node: BinaryNode = {
-    tag: 'spam_list',
-    attrs
-  }
+	  if (typeof options.isKnownChat === 'boolean') {
+	    attrs.is_known_chat = options.isKnownChat ? 'true' : 'false'
+	  }
 
-  const result = await query({
-    tag: 'iq',
-    attrs: {
-      xmlns: 'spam',
-      to: S_WHATSAPP_NET,
-      type: 'set'
-    },
-    content: [node]
-  })
+	  const node: BinaryNode = {
+	    tag: 'spam_list',
+	    attrs
+	  }
 
-  const error = getBinaryNodeChild(result, 'error')
+	  const result = await query({
+	    tag: 'iq',
+	    attrs: {
+	      xmlns: 'spam',
+	      to: S_WHATSAPP_NET,
+	      type: 'set'
+	    },
+	    content: [node]
+	  })
 
-  if (error) {
-    throw new Boom('reportSpam was rejected by the server', {
-      statusCode: Number(error.attrs?.code) || 400,
-      data: {
-        jid: attrs.jid,
-        flow,
-        text: error.attrs?.text
-      }
-    })
-  }
+	  const error = getBinaryNodeChild(result, 'error')
 
-  return {
-    jid: attrs.jid,
-    flow,
-    reported: true,
-    node: result
-  }
-}
+	  if (error) {
+	    throw new Boom('reportSpam was rejected by the server', {
+	      statusCode: Number(error.attrs?.code) || 400,
+	      data: {
+	        jid: attrs.jid,
+	        flow,
+	        text: error.attrs?.text
+	      }
+	    })
+	  }
+
+	  return {
+	    jid: attrs.jid,
+	    flow,
+	    reported: true,
+	    node: result
+	  }
+	}
+
+
 	const cleanDirtyBits = async (type: 'account_sync' | 'groups', fromTimestamp?: number | string) => {
 		logger.info({ fromTimestamp }, 'clean dirty bits ' + type)
 		await sendNode({
@@ -1576,6 +1593,16 @@ const reportSpam = async (
 		updateProfileStatus,
 		updateProfileName,
 		updateBlockStatus,
+		setPrivacySetting,
+		setCallAddPrivacy,
+		setLastSeenPrivacy,
+		setOnlinePrivacy,
+		setProfilePicturePrivacy,
+		setStatusPrivacy,
+		setReadReceiptsPrivacy,
+		setGroupsAddPrivacy,
+		blockContact,
+		unblockContact,
 		updateDisableLinkPreviewsPrivacy,
 		updateCallPrivacy,
 		updateMessagesPrivacy,
@@ -1587,10 +1614,10 @@ const reportSpam = async (
 		updateGroupsAddPrivacy,
 		updateDefaultDisappearingMode,
 		getBusinessProfile,
-                reportSpam,
 		resyncAppState,
 		chatModify,
 		cleanDirtyBits,
+		reportSpam,
 		addOrEditContact,
 		removeContact,
 		placeholderResendCache,

@@ -33,8 +33,12 @@ const VERSION = '4.6';
 
 import { generateWAMessageFromContent, prepareWAMessageMedia } from '../../lib/index.js';
 import crypto from 'crypto';
-import sharp from 'sharp';
-import ffmpeg from 'fluent-ffmpeg';
+// sharp & fluent-ffmpeg dimuat hanya saat dipakai, supaya library tetap bisa
+// di-load walau salah satunya gagal terpasang di server.
+let _sharp;
+let _ffmpeg;
+const loadSharp = async () => (_sharp ??= (await import('sharp')).default);
+const loadFfmpeg = async () => (_ffmpeg ??= (await import('fluent-ffmpeg')).default);
 import { PassThrough, Readable } from 'stream';
 
 
@@ -239,7 +243,7 @@ class Toolkit {
 	}
 
 	static async resize(buffer, x, y, fit = 'cover') {
-		return await sharp(buffer)
+		return await (await loadSharp())(buffer)
 			.resize(x, y, {
 				fit,
 				position: 'center',
@@ -471,10 +475,14 @@ class Toolkit {
 
 				time ??= Math.min(Toolkit.getMp4Duration(videoBuffer) * 0.2, 10);
 
-				ffmpeg(inputStream)
-					.outputOptions([`-ss ${time}`, '-vframes 1', '-vcodec png', '-f image2pipe'])
-					.on('error', (err) => fail(new Error(`ffmpeg error: ${err.message}`)))
-					.pipe(outputStream, { end: true });
+				loadFfmpeg()
+					.then((ffmpeg) => {
+						ffmpeg(inputStream)
+							.outputOptions([`-ss ${time}`, '-vframes 1', '-vcodec png', '-f image2pipe'])
+							.on('error', (err) => fail(new Error(`ffmpeg error: ${err.message}`)))
+							.pipe(outputStream, { end: true });
+					})
+					.catch((err) => fail(err));
 			} catch (err) {
 				return fail(err);
 			}

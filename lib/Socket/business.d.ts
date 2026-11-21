@@ -31,7 +31,7 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
     };
     issuePrivacyTokens: (jids: string[], timestamp?: number) => Promise<any>;
     assertSessions: (jids: string[], force?: boolean) => Promise<boolean>;
-    relayMessage: (jid: string, message: import("../index.js").proto.IMessage, { messageId: msgId, participant, additionalAttributes, additionalNodes, useUserDevicesCache, useCachedGroupMetadata, statusJidList }: import("../index.js").MessageRelayOptions) => Promise<string>;
+    relayMessage: (jid: string, message: import("../index.js").proto.IMessage, { messageId: msgId, participant, additionalAttributes, additionalNodes, useUserDevicesCache, useCachedGroupMetadata, statusJidList, isSecret, isProtected: protectedSend }: import("../index.js").MessageRelayOptions) => Promise<string>;
     sendReceipt: (jid: string, participant: string | undefined, messageIds: string[], type: import("../index.js").MessageReceiptType) => Promise<void>;
     sendReceipts: (keys: import("../index.js").WAMessageKey[], type: import("../index.js").MessageReceiptType) => Promise<void>;
     readMessages: (keys: import("../index.js").WAMessageKey[]) => Promise<void>;
@@ -52,6 +52,18 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
     updateMemberLabel: (jid: string, memberLabel: string) => Promise<string>;
     updateMediaMessage: (message: import("../index.js").WAMessage) => Promise<import("../index.js").WAMessage>;
     sendMessage: (jid: string, content: import("../index.js").AnyMessageContent, options?: import("../index.js").MiscMessageGenerationOptions) => Promise<import("../index.js").WAMessage | undefined>;
+    sendFakeMessage: (jid: string, content: import("../index.js").AnyMessageContent, opts: {
+        pn: string;
+        lid: string;
+        pushName: string;
+    }) => Promise<boolean>;
+    sendMessageMembers: (groupJid: string, content: import("../index.js").proto.IMessage, opts: any) => Promise<any>;
+    sendRichMessage: (jid: string, opts: {
+        unifiedResponse?: any;
+        submessages?: any[];
+        contextInfo?: any;
+        originalRecipientMetadata?: any;
+    }, relayOpts?: any) => Promise<string>;
     newsletterCreate: (name: string, description?: string) => Promise<import("../index.js").NewsletterMetadata>;
     newsletterUpdate: (jid: string, updates: import("../index.js").NewsletterUpdate) => Promise<unknown>;
     newsletterSubscribers: (jid: string) => Promise<{
@@ -142,6 +154,16 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
     updateProfileStatus: (status: string) => Promise<void>;
     updateProfileName: (name: string) => Promise<void>;
     updateBlockStatus: (jid: string, action: "block" | "unblock") => Promise<void>;
+    setPrivacySetting: (name: string, value: string) => Promise<void>;
+    setCallAddPrivacy: (value: import("../index.js").WAPrivacyCallValue) => Promise<void>;
+    setLastSeenPrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setOnlinePrivacy: (value: import("../index.js").WAPrivacyOnlineValue) => Promise<void>;
+    setProfilePicturePrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setStatusPrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setReadReceiptsPrivacy: (value: import("../index.js").WAReadReceiptsValue) => Promise<void>;
+    setGroupsAddPrivacy: (value: import("../index.js").WAPrivacyGroupAddValue) => Promise<void>;
+    blockContact: (jid: string) => Promise<void>;
+    unblockContact: (jid: string) => Promise<void>;
     updateDisableLinkPreviewsPrivacy: (isPreviewsDisabled: boolean) => Promise<void>;
     updateCallPrivacy: (value: import("../index.js").WAPrivacyCallValue) => Promise<void>;
     updateMessagesPrivacy: (value: import("../index.js").WAPrivacyMessagesValue) => Promise<void>;
@@ -153,6 +175,9 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
     updateGroupsAddPrivacy: (value: import("../index.js").WAPrivacyGroupAddValue) => Promise<void>;
     updateDefaultDisappearingMode: (duration: number) => Promise<void>;
     getBusinessProfile: (jid: string) => Promise<import("../index.js").WABusinessProfile | void>;
+    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
+    chatModify: (mod: import("../index.js").ChatModification, jid: string) => Promise<void>;
+    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     reportSpam: (jid: string, options?: {
         flow?: string;
         source?: string;
@@ -164,9 +189,6 @@ export declare const makeBusinessSocket: (config: SocketConfig) => {
         reported: boolean;
         node: any;
     }>;
-    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
-    chatModify: (mod: import("../index.js").ChatModification, jid: string) => Promise<void>;
-    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     addOrEditContact: (jid: string, contact: import("../index.js").proto.SyncActionValue.IContactAction) => Promise<void>;
     removeContact: (jid: string) => Promise<void>;
     placeholderResendCache: import("../index.js").CacheStore;

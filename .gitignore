@@ -23,3 +23,6 @@ test.ts
 TestData
 wa-logs*
 coverage
+# hasil build HARUS ikut di-commit (install dari GitHub tanpa build)
+!lib
+!lib-cjs

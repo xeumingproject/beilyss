@@ -94,6 +94,16 @@ export declare const makeNewsletterSocket: (config: SocketConfig) => {
     updateProfileStatus: (status: string) => Promise<void>;
     updateProfileName: (name: string) => Promise<void>;
     updateBlockStatus: (jid: string, action: "block" | "unblock") => Promise<void>;
+    setPrivacySetting: (name: string, value: string) => Promise<void>;
+    setCallAddPrivacy: (value: import("../index.js").WAPrivacyCallValue) => Promise<void>;
+    setLastSeenPrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setOnlinePrivacy: (value: import("../index.js").WAPrivacyOnlineValue) => Promise<void>;
+    setProfilePicturePrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setStatusPrivacy: (value: import("../index.js").WAPrivacyValue) => Promise<void>;
+    setReadReceiptsPrivacy: (value: import("../index.js").WAReadReceiptsValue) => Promise<void>;
+    setGroupsAddPrivacy: (value: import("../index.js").WAPrivacyGroupAddValue) => Promise<void>;
+    blockContact: (jid: string) => Promise<void>;
+    unblockContact: (jid: string) => Promise<void>;
     updateDisableLinkPreviewsPrivacy: (isPreviewsDisabled: boolean) => Promise<void>;
     updateCallPrivacy: (value: import("../index.js").WAPrivacyCallValue) => Promise<void>;
     updateMessagesPrivacy: (value: import("../index.js").WAPrivacyMessagesValue) => Promise<void>;
@@ -105,6 +115,9 @@ export declare const makeNewsletterSocket: (config: SocketConfig) => {
     updateGroupsAddPrivacy: (value: import("../index.js").WAPrivacyGroupAddValue) => Promise<void>;
     updateDefaultDisappearingMode: (duration: number) => Promise<void>;
     getBusinessProfile: (jid: string) => Promise<import("../index.js").WABusinessProfile | void>;
+    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
+    chatModify: (mod: import("../index.js").ChatModification, jid: string) => Promise<void>;
+    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     reportSpam: (jid: string, options?: {
         flow?: string;
         source?: string;
@@ -116,9 +129,6 @@ export declare const makeNewsletterSocket: (config: SocketConfig) => {
         reported: boolean;
         node: any;
     }>;
-    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
-    chatModify: (mod: import("../index.js").ChatModification, jid: string) => Promise<void>;
-    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     addOrEditContact: (jid: string, contact: import("../index.js").proto.SyncActionValue.IContactAction) => Promise<void>;
     removeContact: (jid: string) => Promise<void>;
     placeholderResendCache: import("../index.js").CacheStore;

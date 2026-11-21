@@ -7,6 +7,10 @@ export * from './Defaults/index'
 export * from './WABinary/index'
 export * from './WAM/index'
 export * from './WAUSync/index'
+export * from './Store/index'
+export * from './Socket/graphql'
+export * from './Socket/mex'
+export type { FindUserResult, SetUsernameOptions, UsernameCheckResult } from './Socket/username'
 
 export type WASocket = ReturnType<typeof makeWASocket>
 export { makeWASocket }

@@ -3,10 +3,15 @@ import { type BinaryNode, getBinaryNodeChild } from '../WABinary'
 import { USyncBotProfileProtocol } from './Protocols/UsyncBotProfileProtocol'
 import { USyncLIDProtocol } from './Protocols/UsyncLIDProtocol'
 import {
+	USyncBusinessProtocol,
 	USyncContactProtocol,
 	USyncDeviceProtocol,
 	USyncDisappearingModeProtocol,
+	USyncFeatureProtocol,
+	USyncPictureProtocol,
+	USyncSidelistProtocol,
 	USyncStatusProtocol,
+	USyncTextStatusProtocol,
 	USyncUsernameProtocol
 } from './Protocols'
 import { USyncUser } from './USyncUser'
@@ -134,6 +139,31 @@ export class USyncQuery {
 
 	withUsernameProtocol() {
 		this.protocols.push(new USyncUsernameProtocol())
+		return this
+	}
+
+	withBusinessProtocol(profileVersion?: string) {
+		this.protocols.push(new USyncBusinessProtocol(profileVersion))
+		return this
+	}
+
+	withPictureProtocol(type?: string) {
+		this.protocols.push(new USyncPictureProtocol(type))
+		return this
+	}
+
+	withTextStatusProtocol() {
+		this.protocols.push(new USyncTextStatusProtocol())
+		return this
+	}
+
+	withSidelistProtocol(useLidAddressing?: boolean) {
+		this.protocols.push(new USyncSidelistProtocol(useLidAddressing))
+		return this
+	}
+
+	withFeatureProtocol(features?: string[]) {
+		this.protocols.push(new USyncFeatureProtocol(features))
 		return this
 	}
 }

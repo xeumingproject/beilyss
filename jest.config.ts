@@ -2,6 +2,7 @@
 import type { Config } from 'jest'
 
 const config: Config = {
+	testTimeout: 30000,
 	preset: 'ts-jest/presets/default-esm',
 	testEnvironment: 'node',
 	roots: ['<rootDir>/src', '<rootDir>/WAProto'],

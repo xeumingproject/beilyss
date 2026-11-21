@@ -26,5 +26,10 @@ export declare class USyncQuery {
     withBotProfileProtocol(): this;
     withLIDProtocol(): this;
     withUsernameProtocol(): this;
+    withBusinessProtocol(profileVersion?: string): this;
+    withPictureProtocol(type?: string): this;
+    withTextStatusProtocol(): this;
+    withSidelistProtocol(useLidAddressing?: boolean): this;
+    withFeatureProtocol(features?: string[]): this;
 }
 //# sourceMappingURL=USyncQuery.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"USyncBackoff.d.ts","sourceRoot":"","sources":["../../src/WAUSync/USyncBackoff.ts"],"names":[],"mappings":"AAEA,eAAO,MAAM,oBAAoB,GAAI,cAAc,MAAM,EAAE,IAAI,MAAM,SAEpE,CAAA;AAED,eAAO,MAAM,cAAc,GAAU,OAAO;IAAE,OAAO,EAAE,MAAM,CAAC;IAAC,SAAS,EAAE,KAAK,CAAC;QAAE,IAAI,EAAE,MAAM,CAAA;KAAE,CAAC,CAAA;CAAE,kBAQlG,CAAA"}

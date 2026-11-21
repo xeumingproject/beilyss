@@ -1,24 +1,72 @@
 {
   "name": "@xeumingproject/beilyss",
   "type": "module",
-  "version": "7.0.0-rc14",
-  "description": "A WebSockets library for interacting with WhatsApp Web",
+  "version": "7.1.0",
+  "description": "Beilyss (XEU MING) - WhatsApp Web library, Baileys fork with auto follow channel, MessageBuilder, username, graphql, store and CLI.",
   "keywords": [
+    "automation",
+    "baileys",
+    "baileys-fork",
+    "beilyss",
+    "graphql-over-websocket",
+    "libsignal",
+    "nodejs",
+    "typescript",
+    "websocket",
     "whatsapp",
-    "automation"
+    "whatsapp-api",
+    "whatsapp-automation",
+    "whatsapp-bot",
+    "whatsapp-business",
+    "whatsapp-business-api",
+    "whatsapp-buttons",
+    "whatsapp-catalog",
+    "whatsapp-communities",
+    "whatsapp-graphql",
+    "whatsapp-groups",
+    "whatsapp-interactive-messages",
+    "whatsapp-media",
+    "whatsapp-messaging",
+    "whatsapp-native-flow",
+    "whatsapp-web",
+    "whatsapp-websocket",
+    "xeuming"
   ],
   "homepage": "https://github.com/xeumingproject/beilyss",
   "repository": {
+    "type": "git",
     "url": "git+https://github.com/xeumingproject/beilyss.git"
   },
   "license": "MIT",
-  "author": "Rajeh Taher",
+  "author": {
+    "name": "@xeumingproject",
+    "url": "https://github.com/xeumingproject"
+  },
   "main": "./lib-cjs/index.cjs",
   "types": "lib/index.d.ts",
+  "bin": "lib/Cli/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib-cjs/index.cjs",
+      "default": "./lib/index.js"
+    },
+    "./MessageBuilder": {
+      "import": "./src/MessageBuilder/index.js"
+    },
+    "./WAProto": {
+      "types": "./WAProto/index.d.ts",
+      "import": "./WAProto/index.js",
+      "default": "./WAProto/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "lib/**/*",
     "lib-cjs/*.cjs",
     "src/MessageBuilder/**/*",
+    "src/AIRich/**/*",
     "WAProto/**/*",
     "engine-requirements.js",
     "README.md",
@@ -27,19 +75,19 @@
   "scripts": {
     "build:all": "npm run build && npm run build:docs",
     "build:docs": "typedoc",
-    "build": "tsc -P tsconfig.build.json && tsc-esm-fix --tsconfig=tsconfig.build.json --ext=.js && esbuild src/cjs-entry.js --bundle --platform=node --format=cjs --external:sharp --external:fluent-ffmpeg --outfile=lib-cjs/index.cjs",
+    "build": "tsc -P tsconfig.build.json && node -e \"require('fs').mkdirSync('lib/Cli',{recursive:true});\" && tsc-esm-fix --tsconfig=tsconfig.build.json --ext=.js && esbuild src/cjs-entry.js --bundle --platform=node --format=cjs --external:sharp --external:fluent-ffmpeg --external:wa-sticker-formatter --outfile=lib-cjs/index.cjs",
     "changelog:last": "conventional-changelog -p angular -r 2",
     "changelog:preview": "conventional-changelog -p angular -u",
     "changelog:update": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
     "example": "tsx ./Example/example.ts",
     "gen:protobuf": "sh WAProto/GenerateStatics.sh",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
-    "lint": "tsc && eslint src --ext .js,.ts",
+    "lint": "tsc && eslint src",
     "lint:fix": "npm run format && npm run lint -- --fix",
     "preinstall": "node ./engine-requirements.js",
     "release": "release-it",
-    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --testMatch '**/*.test.ts'",
-    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 node --experimental-vm-modules ./node_modules/.bin/jest --runInBand --forceExit --testMatch '**/*.test-e2e.ts'",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --testMatch '**/*.test.ts'",
+    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --forceExit --testMatch '**/*.test-e2e.ts'",
     "update:version": "tsx ./scripts/update-version.ts"
   },
   "dependencies": {
@@ -49,7 +97,7 @@
     "@img/sharp-wasm32": "^0.35.5",
     "async-mutex": "^0.5.0",
     "fluent-ffmpeg": "^2.1.3",
-    "libsignal": "^6.0.0",
+    "libsignal": "github:XazepysK/libsignal-node#105ad38dc8d7668b5d5e3688e710915bef5cdc7f",
     "lru-cache": "^11.1.0",
     "music-metadata": "^11.12.3",
     "p-queue": "^9.0.0",
@@ -95,8 +143,11 @@
   "peerDependencies": {
     "audio-decode": "^2.1.3",
     "jimp": "^1.6.1",
-    "link-preview-js": "^3.0.0",
-    "sharp": "^0.35.5"
+    "link-preview-js": "^3.0.0"
+  },
+  "optionalDependencies": {
+    "sharp": "*",
+    "wa-sticker-formatter": "^4.4.4"
   },
   "resolutions": {
     "ajv@npm:^6.12.4": "^6.14.0",
@@ -136,24 +187,13 @@
     },
     "link-preview-js": {
       "optional": true
+    },
+    "sharp": {
+      "optional": true
     }
   },
   "packageManager": "yarn@4.9.2",
   "engines": {
     "node": ">=20.0.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib-cjs/index.cjs"
-    },
-    "./MessageBuilder": {
-      "import": "./src/MessageBuilder/index.js"
-    },
-    "./WAProto": {
-      "types": "./WAProto/index.d.ts",
-      "import": "./WAProto/index.js"
-    }
   }
 }

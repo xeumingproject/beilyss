@@ -50,6 +50,16 @@ export declare const makeChatsSocket: (config: SocketConfig) => {
     updateProfileStatus: (status: string) => Promise<void>;
     updateProfileName: (name: string) => Promise<void>;
     updateBlockStatus: (jid: string, action: "block" | "unblock") => Promise<void>;
+    setPrivacySetting: (name: string, value: string) => Promise<void>;
+    setCallAddPrivacy: (value: WAPrivacyCallValue) => Promise<void>;
+    setLastSeenPrivacy: (value: WAPrivacyValue) => Promise<void>;
+    setOnlinePrivacy: (value: WAPrivacyOnlineValue) => Promise<void>;
+    setProfilePicturePrivacy: (value: WAPrivacyValue) => Promise<void>;
+    setStatusPrivacy: (value: WAPrivacyValue) => Promise<void>;
+    setReadReceiptsPrivacy: (value: WAReadReceiptsValue) => Promise<void>;
+    setGroupsAddPrivacy: (value: WAPrivacyGroupAddValue) => Promise<void>;
+    blockContact: (jid: string) => Promise<void>;
+    unblockContact: (jid: string) => Promise<void>;
     updateDisableLinkPreviewsPrivacy: (isPreviewsDisabled: boolean) => Promise<void>;
     updateCallPrivacy: (value: WAPrivacyCallValue) => Promise<void>;
     updateMessagesPrivacy: (value: WAPrivacyMessagesValue) => Promise<void>;
@@ -61,6 +71,9 @@ export declare const makeChatsSocket: (config: SocketConfig) => {
     updateGroupsAddPrivacy: (value: WAPrivacyGroupAddValue) => Promise<void>;
     updateDefaultDisappearingMode: (duration: number) => Promise<void>;
     getBusinessProfile: (jid: string) => Promise<WABusinessProfile | void>;
+    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
+    chatModify: (mod: ChatModification, jid: string) => Promise<void>;
+    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     reportSpam: (jid: string, options?: {
         flow?: string;
         source?: string;
@@ -72,9 +85,6 @@ export declare const makeChatsSocket: (config: SocketConfig) => {
         reported: boolean;
         node: any;
     }>;
-    resyncAppState: (collections: readonly ("critical_unblock_low" | "regular_high" | "regular_low" | "critical_block" | "regular")[], isInitialSync: boolean) => Promise<void>;
-    chatModify: (mod: ChatModification, jid: string) => Promise<void>;
-    cleanDirtyBits: (type: "account_sync" | "groups", fromTimestamp?: number | string) => Promise<void>;
     addOrEditContact: (jid: string, contact: proto.SyncActionValue.IContactAction) => Promise<void>;
     removeContact: (jid: string) => Promise<void>;
     placeholderResendCache: CacheStore;
